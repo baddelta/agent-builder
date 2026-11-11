@@ -2,6 +2,17 @@
 
 All notable changes to this plugin. Versions follow [semver](https://semver.org/).
 
+## 1.4.2 — 2026-11-11
+
+Fixes from rerunning the four test requests (now saved in `tests/requests.md`) until they came back clean. From this release on, every release runs them first.
+
+- **Decide the shape first:** Step 0 now starts with "nothing, a workflow, or agent files" before any questions.
+- **Workflows:** the orchestrator runs on `opus` (`fable` only when the plan itself is hard). The workflow creates its own working branch, commits the contract and tests there, and leaves reviewed branches unmerged for the user, since a running workflow can't stop to ask. Tasks are split by file, with shared files owned by the contract step. The budget is scaled from a trial run and is a target, not a hard limit. The build-log line records each step's model and effort.
+- **Quarantine:** the actor's work still gets a reviewer on a different model. The quarantine lead has its own tool list and model (`opus`), starts from the newest item on its first run, and prefers a read-only connector over `WebFetch` for structured data. Permissions cover the whole run (commands, edit folders, MCP tools), need a hand-run before scheduling, and `--max-turns` is a rough cap.
+- **Teams:** the lead creates a user-approved feature branch. Every member that edits runs in its own worktree, builders commit on task branches and report branch, path and commit to the reviewer, and builders' worktrees start from the branch with the merged tests. Dependencies may need installing in new worktrees. Test and contract tasks have their own done rules, and any task done on the reviewer's model (including the architect's contract) is reviewed on another. The scout is the built-in `Explore` on `haiku`, not a member. The test engineer runs on `sonnet` at `medium`. Tiny/small/large sizing, and a default scope of "change as little as possible".
+- **Template:** every fill-in field is now in capitals so the checker sees it.
+- **Checker:** flags leftover template instruction lines and placeholders with hints (`[SHARED FILES, e.g. src/]`), lists every placeholder with a count, checks `.json` settings files for placeholders, and has fewer false "asks it to edit" hints (`should-fix`, "the change has", "can't edit", "doesn't fix").
+
 ## 1.4.1 — 2026-11-11
 
 Fixes from running four test requests on 1.4.0 (a one-time migration, a nightly public-issue fixer, a reusable feature team, a one-line typo fix). All four made the right top-level call; these tighten the details.

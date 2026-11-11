@@ -100,7 +100,14 @@ function checkToolNames(tools, warnings) {
 
 // ---- instructions vs tools (keyword heuristics) ----
 
-const NEGATION = /\b(don'?t|do not|never|no|not|without|avoid|must not|mustn'?t)\b/;
+const NEGATION = /\b(don'?t|doesn'?t|do not|does not|never|no|not|without|avoid|must not|mustn'?t|can'?t|cannot|won'?t|shouldn'?t|isn'?t)\b/;
+const PLACEHOLDER = /\[[A-Z][A-Z0-9 _/'.,:-]{2,}(?:\]|[,(;][^\]\n]*\])(?!\()|<<[^<>\n]+>>|\{\{[^{}\n]+\}\}|^\s*[-*]?\s*\[[A-Z][^\]\n]{15,}\](?!\()/gm;
+
+function findPlaceholders(text) {
+  return [...new Set(text.match(PLACEHOLDER) ?? [])]
+    .map((h) => h.trim().replace(/^[-*]\s*/, ""))
+    .map((h) => (h.length > 32 ? `${h.slice(0, 29)}...` : h));
+}
 
 /** Sentences (and bullet lines) of the body, lowercased, with code fences kept as text. */
 function sentences(body) {
@@ -122,8 +129,9 @@ function checkInstructions(body, tools, checks) {
   const sents = sentences(body);
   const text = body.toLowerCase();
 
+  // Verb uses only: not "should-fix", not "the change has behavior to test".
   const EDIT_ASK =
-    /\b(edit|modify|fix|update|refactor|rewrite|implement|patch|change|create|write)\b[^.]{0,40}\b(files?|code|tests?|resolvers?|functions?|handlers?|the bug|it)\b|\bapply (the )?(fix|change|patch)/;
+    /(?<![-\w])(?<!\b(the|a|an|this|that|each|any|no|every) )(edit|modify|fix|update|refactor|rewrite|implement|patch|change|create|write)\b[^.]{0,40}\b(files?|code|tests?|resolvers?|functions?|handlers?|the bug|it)\b|\bapply (the )?(fix|change|patch)/;
   if (!has(EDIT_TOOLS) && asksFor(sents, EDIT_ASK))
     checks.push("instructions ask it to change files or code, but it has no Edit/Write tool");
 
@@ -184,6 +192,18 @@ function check(file) {
   } catch {
     return { errors: ["cannot read file"], warnings, checks };
   }
+  // Settings files (.claude/settings.json): only check for unfilled placeholders.
+  if (file.endsWith(".json")) {
+    try {
+      JSON.parse(text);
+    } catch {
+      errors.push("not valid JSON");
+    }
+    const holes = findPlaceholders(text);
+    if (holes.length) warnings.push(`${holes.length} unfilled placeholder${holes.length > 1 ? "s" : ""}: ${holes.join(", ")}`);
+    return { errors, warnings, checks };
+  }
+
   const fm = parseFrontmatter(text);
   if (!fm) return { errors: ["no YAML frontmatter (--- block) at top of file"], warnings, checks };
 
@@ -223,10 +243,10 @@ function check(file) {
   }
 
   // Unfilled placeholders: [TEST COMMAND], <<FILL ME>>, {{name}}
-  const holes = [...new Set(text.match(/\[[A-Z][A-Z0-9 _/'.-]{2,}\]|<<[^<>\n]+>>|\{\{[^{}\n]+\}\}/g) ?? [])]
-    .map((h) => (h.length > 32 ? `${h.slice(0, 29)}...` : h));
+  // plus template instruction lines left in: "[If this lead runs unattended: ...]"
+  const holes = findPlaceholders(text);
   if (holes.length)
-    warnings.push(`unfilled placeholder${holes.length > 1 ? "s" : ""} ${holes.slice(0, 5).join(", ")}${holes.length > 5 ? ", ..." : ""}: not ready to use until filled in`);
+    warnings.push(`${holes.length} unfilled placeholder${holes.length > 1 ? "s" : ""}: ${holes.join(", ")} (not ready to use until filled in)`);
 
   if (["xhigh", "max"].includes(fm.effort ?? "") && fm.model !== "fable")
     warnings.push(`effort ${fm.effort} on ${fm.model}: compare against the next model up at medium`);

@@ -11,7 +11,7 @@ Builds subagent definition files and chooses a model + effort for each, so every
 
 Read `~/.claude/agent-builder/PREFERENCES.md` if it exists. It records the user's plan (API or a subscription seat), which models they have, and where they like agents saved.
 
-If it doesn't exist and you're about to choose models (for agents or a workflow), ask once; this doesn't count toward CreateAgent's three-question limit, and you skip it when you end up building nothing: are they paying per token through the API, or on a Claude subscription (Pro, Max, Team, Enterprise)? Which models appear in their `/model` menu? Offer to save the answers to that file (template: `PreferencesTemplate.md` in this skill's folder) so you don't ask again.
+If it doesn't exist, first decide what to build (Step 0 of `Workflows/CreateAgent.md`). If that means choosing models (for agents or a workflow), ask once; this doesn't count toward CreateAgent's three-question limit, and you skip it when you end up building nothing: are they paying per token through the API, or on a Claude subscription (Pro, Max, Team, Enterprise)? Which models appear in their `/model` menu? Offer to save the answers to that file (template: `PreferencesTemplate.md` in this skill's folder) so you don't ask again.
 
 The skill also keeps a build log at `~/.claude/agent-builder/agents-log.md`: one line per agent it creates, plus the user's notes on how each one performed. The preferences file belongs to the user (read it fresh each time, don't rewrite it without asking); the log is yours to append to.
 
@@ -30,7 +30,7 @@ The skill also keeps a build log at `~/.claude/agent-builder/agents-log.md`: one
 | Classify, route, tag, extract, high volume | `haiku` | `medium` |
 | Same task over thousands of items, nobody waiting | no agent: a Batch API script on `haiku`, tested on ~50 items first | `medium` |
 | One-time big job (migration, verify every claim, deep research, rank hundreds) | no saved agents: a workflow, with this table applied to each step | per step |
-| Reads untrusted content and acts on it | two agents: a reader with no write tools, an actor that sees only its summaries | per agent |
+| Reads untrusted content and acts on it | two agents run by a lead: a reader with no write tools (`sonnet`; `haiku` for plain extraction), an actor that sees only its summaries | per agent |
 | Reviewer of another agent's work | a different model from the one it reviews (often `opus` reviewing `sonnet`) | `medium` |
 | Side tasks: find files, read logs, summarize | `haiku` or `sonnet` | `medium` |
 | Repeated investigation, review, drafting | `sonnet` | `medium` |
@@ -40,7 +40,7 @@ The skill also keeps a build log at `~/.claude/agent-builder/agents-log.md`: one
 | Big refactors, migrations, architecture, leading other agents, deep research | `fable` | `medium` → `high` |
 | Not sure | `opus` | `medium` |
 
-Escalate in this order when an agent falls short: (1) give it a way to check its own work, (2) raise effort one level, (3) move up one model at a *lower* effort.
+Where a row shows a range (`medium` → `high`), write the first value and raise it only when the agent falls short. Escalate in this order when an agent falls short: (1) give it a way to check its own work, (2) raise effort one level, (3) move up one model at a *lower* effort.
 
 ## Examples
 
@@ -50,7 +50,7 @@ Escalate in this order when an agent falls short: (1) give it a way to check its
 
 **One-time job:** "Migrate our API from REST to GraphQL, just this once" → no saved files: suggests a workflow with a model for each step and a ready prompt, and warns about token use.
 
-**Too small:** "Set up an agent to fix the typo in our README" → fixes the typo, and offers an agent only if they want this kind of fix handled again.
+**Too small:** "Set up an agent to fix the typo in our README" → fixes the typo, then offers in one line to build an agent if they want this kind of fix handled again.
 
 **Bulk job:** "Make an agent to classify our 40,000 support tickets" → suggests a Batch API script on `haiku` instead of an agent, with a 50-ticket test run first.
 

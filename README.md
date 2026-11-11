@@ -131,6 +131,8 @@ skills/agent-builder/
     validate-agent.mjs  Agent file checker (no dependencies)
 examples/
   test-log-reader.md    A finished agent made with this skill
+tests/
+  requests.md           Real requests to run before every release, with expected results
 ```
 
 ## Known limits
@@ -140,6 +142,8 @@ examples/
 - **The checker's instruction hints are hints.** Tool-name spelling is checked against a list of Claude Code's built-in tools, with "did you mean" suggestions. Whether the instructions match the tools is checked by keyword, so it can miss a mismatch or flag a false one; these show up as `check:` lines, never errors. To cover what keywords miss, the skill also has Claude reread each agent against its tools. New built-in tools need adding to the checker's list (`KNOWN_TOOLS` in `validate-agent.mjs`); until then they show as "unknown" warnings.
 
 ## Contributing
+
+**Before every release**, run the requests in [`tests/requests.md`](tests/requests.md) against the changed version and fix what they expose. The checker and `claude plugin validate` passing isn't enough.
 
 Found a case where it picked the wrong model? Open an issue with the request you gave it, the agent it produced, and what you expected. Lessons go into the Gotchas section of `SKILL.md`, and model-guidance updates go into `ModelSelection.md` with a new snapshot date. See [CHANGELOG.md](CHANGELOG.md).
 
