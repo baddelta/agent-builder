@@ -78,6 +78,14 @@ To check an agent file yourself:
 node skills/agent-builder/Tools/validate-agent.mjs ~/.claude/agents/*.md
 ```
 
+It reports three levels:
+
+| Level | Meaning | Example |
+|-------|---------|---------|
+| `error` | The file is broken; fix it | unknown model `gpt5`, missing description |
+| `warning` | Probably a mistake | tool `Grepp` (did you mean `Grep`?), no `model` set |
+| `check` | A keyword hint that instructions and tools may not match | "says run the tests, but has no Bash" |
+
 ## How it picks a model
 
 | Agent's job | Model | Effort |
@@ -117,7 +125,7 @@ examples/
 
 - **Prices and model names change.** `ModelSelection.md` is dated. If it's older than a few months, check the source article and Anthropic's pricing page.
 - **Subagents can't start other subagents.** For agent teams, the lead has to run as your main session (`claude --agent <lead-name>`). The skill tells you this when it builds a team.
-- **The checker doesn't catch everything.** It doesn't verify tool-name spelling or that an agent's instructions match its tools.
+- **The checker's instruction hints are hints.** Tool-name spelling is checked against a list of Claude Code's built-in tools, with "did you mean" suggestions. Whether the instructions match the tools is checked by keyword, so it can miss a mismatch or flag a false one; these show up as `check:` lines, never errors. To cover what keywords miss, the skill also has Claude reread each agent against its tools. New built-in tools need adding to the checker's list (`KNOWN_TOOLS` in `validate-agent.mjs`); until then they show as "unknown" warnings.
 
 ## Contributing
 

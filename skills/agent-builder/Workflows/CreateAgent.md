@@ -95,4 +95,5 @@ Leave `notes` empty. The user fills it in later ("too weak on long logs", "worke
 
 ## After writing
 
-Run `node <this skill's folder>/Tools/validate-agent.mjs <file>...` (or `bun` instead of `node`) on every file you wrote and fix anything it reports. Tell the user that new agents are picked up on the next session (or via `/agents`), and that they can tell you how an agent performed so it gets noted in the log.
+1. **Run the checker:** `node <this skill's folder>/Tools/validate-agent.mjs <file>...` (or `bun` instead of `node`) on every file you wrote. Fix every `error` and `warning`. Treat each `check:` line as a question: fix it, or tell the user in one line why it's a false alarm.
+2. **Read each agent back against its tools.** The checker's keyword hints miss things, so reread the body and confirm: every action it's told to take has a tool to do it; every tool it has is needed by something in the body (drop the rest); anything it's told never to do isn't something its tools invite. Fix mismatches before showing the user. Tell the user that new agents are picked up on the next session (or via `/agents`), and that they can tell you how an agent performed so it gets noted in the log.

@@ -2,6 +2,15 @@
 
 All notable changes to this plugin. Versions follow [semver](https://semver.org/).
 
+## 1.2.0 — 2026-11-11
+
+Checker upgrades, closing a limit listed in 1.1.0.
+
+- **Tool-name spelling:** tools are checked against Claude Code's built-in tool list, with "did you mean" suggestions (`Grepp` → `Grep`, `bash` → `Bash`). MCP tools are checked for the `mcp__<server>__<tool>` shape. Unknown names are warnings, so brand-new tools don't break anything.
+- **Instructions vs tools:** new `check:` hints when the instructions ask for something the tools can't do (edit files, run commands, use the web, dispatch agents), when an agent says it's read-only but has Edit/Write, and when the honest-reporting rule is missing. Phrases like "don't edit X" or "the run crashed" don't trigger them.
+- Tools written as YAML lists (`- Read`) or with patterns (`Bash(git diff:*)`) are now parsed correctly.
+- CreateAgent now has Claude reread each agent against its tools after the checker runs, to catch what keywords miss.
+
 ## 1.1.0 — 2026-11-11
 
 Ideas from two more claude.dev articles: ["Lessons from Building Claude Code: How We Use Skills"](https://claude.dev/blog/lessons-from-building-claude-code-how-we-use-skills/) and ["Building Effective Agent Automations"](https://claude.dev/blog/building-effective-agent-automations/).
