@@ -12,7 +12,12 @@ Agents that don't name a model inherit your session's model, which is usually th
 
 The model-selection guidance is based on **["Which Claude model should you build with?"](https://claude.dev/blog/which-claude-model-should-you-build-with/)** by Addy Osmani on the claude.dev blog (Anthropic). [`ModelSelection.md`](skills/agent-builder/ModelSelection.md) summarizes it in our own words, with a snapshot date. Go read the original. It has the benchmarks and reasoning behind every recommendation here.
 
-Where this plugin goes beyond the article (for example the "match the model to how the output gets checked" rule, and the notes on subscription plans), that's our own interpretation, learned from testing. It isn't Anthropic's advice.
+Two more claude.dev articles shaped how the agents themselves are written:
+
+- **["Lessons from Building Claude Code: How We Use Skills"](https://claude.dev/blog/lessons-from-building-claude-code-how-we-use-skills/)** by Thariq Shihipar. This is where we got: give agents a goal and rules rather than numbered scripts, include a known-pitfalls section, and keep a log so the skill learns over time.
+- **["Building Effective Agent Automations"](https://claude.dev/blog/building-effective-agent-automations/)** by Lance Martin and CJ Avilla. This is where we got: the honest-reporting rules (a failed read is never "nothing found", state a status or drop it, copy links from the source) and the rules for unattended agents (least access, a spending cap, a sign it ran, bookmarks instead of time windows).
+
+Where this plugin goes beyond these articles (for example the "match the model to how the output gets checked" rule, and the notes on subscription plans), that's our own interpretation, learned from testing. It isn't Anthropic's advice.
 
 ## Requirements
 
@@ -52,7 +57,17 @@ Just ask in plain words. For example:
 - "Build a team of agents to migrate this API from REST to GraphQL."
 - "Are my agents on the right models?"
 
+- "Make an agent that checks my open PRs every morning." (an unattended agent, so it gets extra safety rules)
+- "The log reader missed failures in long logs." (recorded in the build log for the next audit)
+
 Each run ends with a table showing every agent, its model, its effort level, and why it was chosen. New agents are picked up in your next session, or right away via `/agents`.
+
+**Your files** (created on first use, never shipped with the plugin):
+
+| File | What it holds | Who writes it |
+|------|---------------|---------------|
+| `~/.claude/agent-builder/PREFERENCES.md` | Your plan, available models, default save location | You (Claude asks before changing it) |
+| `~/.claude/agent-builder/agents-log.md` | Every agent built, its model and why, plus your notes on how it did | Claude appends; you add notes |
 
 To check an agent file yourself:
 

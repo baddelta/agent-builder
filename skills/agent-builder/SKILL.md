@@ -13,12 +13,15 @@ Read `~/.claude/agent-builder/PREFERENCES.md` if it exists. It records the user'
 
 If it doesn't exist, ask once, before choosing models: are they paying per token through the API, or on a Claude subscription (Pro, Max, Team, Enterprise)? Which models appear in their `/model` menu? Offer to save the answers to that file (template: `PreferencesTemplate.md` in this skill's folder) so you don't ask again.
 
+The skill also keeps a build log at `~/.claude/agent-builder/agents-log.md`: one line per agent it creates, plus the user's notes on how each one performed. The preferences file belongs to the user (read it fresh each time, don't rewrite it without asking); the log is yours to append to.
+
 ## Workflows
 
 | Request | File |
 |---------|------|
-| Create one agent or a team of agents | `Workflows/CreateAgent.md` |
-| Review existing agents' model and effort choices | `Workflows/AuditAgents.md` |
+| Create one agent, a team, or an unattended/scheduled agent | `Workflows/CreateAgent.md` |
+| Review existing agents' model, effort and instructions | `Workflows/AuditAgents.md` |
+| "That agent was too weak / worked great", feedback on an agent | `Workflows/AuditAgents.md` (Recording results) |
 
 ## Quick reference
 

@@ -1,6 +1,6 @@
 {
   "name": "agent-builder",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Create Claude Code subagents and pick the right Claude model and effort level for each one, based on Anthropic's model-selection guidance.",
   "author": {
     "name": "BD"
