@@ -44,7 +44,10 @@ Restart Claude Code (or start a new session) so the skill loads.
 
 ```
 /plugin marketplace update agent-builder
+/plugin update agent-builder@agent-builder
 ```
+
+Then restart Claude Code. Check what changed in [CHANGELOG.md](CHANGELOG.md).
 
 **Without the plugin system:** copy `skills/agent-builder/` into `~/.claude/skills/`.
 
