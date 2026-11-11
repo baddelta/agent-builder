@@ -150,6 +150,14 @@ function checkInstructions(body, tools, checks) {
 
   const HONEST =
     /\b(can'?t|cannot|couldn'?t|unable to|fails? to)\b[^.]{0,30}\b(find|read|access|reach|open|load|run)\b|\bsay so\b|\bfailed reads?\b|\breport (the|that|it as a) (failure|gap|error)/;
+  const OWNS = /\bowns?\b|\bmay (edit|change|touch)\b|\bonly (edit|change|touch)\b|\byour (own )?files\b|\bfiles for your\b/;
+  if (has(EDIT_TOOLS) && !OWNS.test(text))
+    checks.push("can edit files but doesn't say which ones it owns (add an \"Owns:\" line so parallel agents don't collide)");
+
+  const DONE = /(^|\n)\s*done\b[^\n]{0,3}:|\bdone (means|when)\b|\bcomplete only when\b|\bfinished when\b|\bmust pass\b|\buntil it passes\b/;
+  if (!DONE.test(text))
+    checks.push("no \"Done:\" check found (the concrete test or check that proves the work is finished)");
+
   if (!HONEST.test(text))
     checks.push("no honest-reporting rule found (e.g. \"if you can't read a source, say so; never report it as nothing found\")");
 }
@@ -193,7 +201,8 @@ function check(file) {
     const canEdit = names.some((t) => EDIT_TOOLS.includes(t));
     if (fm.model === "haiku" && canEdit)
       warnings.push("haiku agent can edit files; small models are best kept on read-only, easy-to-check work");
-    if (!canEdit && names.includes("Bash"))
+    const listsCommands = /\b(may run|only run|allowed commands|commands you may|you can run)\b/i.test(body);
+    if (!canEdit && names.includes("Bash") && !listsCommands)
       warnings.push("read-only agent has Bash, which can still change files; list allowed commands in its prompt");
     if (names.includes("Agent") || names.includes("Task"))
       warnings.push("has the Agent tool: only works when run as the main session (claude --agent <name>), since subagents can't start subagents");

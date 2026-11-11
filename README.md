@@ -17,7 +17,12 @@ Two more claude.dev articles shaped how the agents themselves are written:
 - **["Lessons from Building Claude Code: How We Use Skills"](https://claude.dev/blog/lessons-from-building-claude-code-how-we-use-skills/)** by Thariq Shihipar. This is where we got: give agents a goal and rules rather than numbered scripts, include a known-pitfalls section, and keep a log so the skill learns over time.
 - **["Building Effective Agent Automations"](https://claude.dev/blog/building-effective-agent-automations/)** by Lance Martin and CJ Avilla. This is where we got: the honest-reporting rules (a failed read is never "nothing found", state a status or drop it, copy links from the source) and the rules for unattended agents (least access, a spending cap, a sign it ran, bookmarks instead of time windows).
 
-Where this plugin goes beyond these articles (for example the "match the model to how the output gets checked" rule, and the notes on subscription plans), that's our own interpretation, learned from testing. It isn't Anthropic's advice.
+Two shared images shaped the team and bulk-job rules:
+
+- **"The Fully Loaded Claude Code Setup"** map by [@Voxyz_ai](https://x.com/Voxyz_ai) (Nov 2026). This is where we got: give every agent a concrete check before it says "done", have a different model review the work, give each parallel agent its own folder, and route bulk jobs to the Batch API after testing on a small sample.
+- **"Fable 5.2 Coding Agent Team Prompting Guide"** (a shared one-page prompt; no author was named on it). This is where we got: teams of 3–5, one owner per file, a read-only reviewer with fresh context, a lead that coordinates instead of coding, and the Goal / Owns / Context / Done / Reports structure. [`TeamLeadTemplate.md`](skills/agent-builder/TeamLeadTemplate.md) is our rewrite of it. If you know the original author, please open an issue so we can credit them.
+
+Where this plugin goes beyond these sources (for example the "match the model to how the output gets checked" rule, and the notes on subscription plans), that's our own interpretation, learned from testing. It isn't Anthropic's advice.
 
 ## Requirements
 
@@ -95,6 +100,8 @@ It reports three levels:
 | Scoped edits or reviews with a test or checker behind them | Sonnet | medium → high |
 | Judgment with no safety net, everyday engineering | Opus | medium → high |
 | Migrations, architecture, leading other agents, deep research | Fable | medium → high |
+| Reviewing another agent's work | A different model from the one it reviews | medium |
+| Same task over thousands of items, nobody waiting | No agent: a Batch API script on Haiku, tested on ~50 items first | medium |
 | Not sure | Opus | medium |
 
 When an agent falls short, the skill escalates in this order:
@@ -112,6 +119,7 @@ skills/agent-builder/
   SKILL.md              Instructions Claude loads when the skill triggers
   ModelSelection.md     Model-selection reference (summary of the article above)
   PreferencesTemplate.md  Template for your saved plan/model preferences
+  TeamLeadTemplate.md   Fill-in prompt for the lead of an agent team
   Workflows/
     CreateAgent.md      Creating one agent or a team
     AuditAgents.md      Reviewing existing agents

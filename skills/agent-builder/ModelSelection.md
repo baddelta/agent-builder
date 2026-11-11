@@ -54,6 +54,14 @@ So past `high`, try the next model up at a lower effort before going further.
 - `CLAUDE_CODE_SUBAGENT_MODEL` sets the default model for subagents that don't set one.
 - When the routing is simple (one model per step type), let code or the agent file choose the model rather than asking a model to decide at run time.
 
+## Bulk jobs: maybe not an agent at all
+
+When the job is the same small task over many items with nobody waiting (classify 50,000 tickets, tag a product catalog, extract fields from a folder of documents), a subagent is usually the wrong tool. A short script that calls the Claude API is cheaper and easier to rerun, and Anthropic's **Batch API** processes requests asynchronously at about half the normal price (per the setup map credited in the README; check current pricing).
+
+- **Model:** `haiku` at `medium` is the usual starting point (see the table above).
+- **Test small first:** run the prompt on about 50 items, check those results by hand, fix the prompt, and only then run the full set. Mistakes on 50 rows are cheap; mistakes on 50,000 are not.
+- **What the skill does:** offer to write the script and the 50-item check instead of an agent file, and say why.
+
 ## Cost thinking
 
 - Higher price per token doesn't always mean higher cost per task. A stronger model can finish in fewer tokens.

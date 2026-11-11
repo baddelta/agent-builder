@@ -23,13 +23,15 @@ Before writing, check for an existing agent that already does the job (see Gotch
 
 ## Writing the agent's instructions
 
-Write the body as a **goal, rules, and output**, not a numbered script. The agent is a capable model: tell it what done looks like and what to avoid, and let it work out the steps. Use numbered steps only where order really matters (for example "run the tests before reporting").
+Write the body as labeled parts, not a numbered script. The agent is a capable model: tell it what done looks like and what to avoid, and let it work out the steps. Use numbered steps only where order really matters (for example "run the tests before reporting").
 
 A good body has:
-- **Goal:** one or two sentences on what the agent is for.
-- **Rules:** what it must and must not do, including its limits (files it may touch, commands it may run).
+- **Goal:** what the agent is for, and why it matters to the bigger job.
+- **Owns:** the exact files and folders it may change, or "nothing (read-only)". This is what keeps parallel agents out of each other's way.
+- **Rules:** what it must and must not do, including commands it may run.
 - **Known pitfalls:** anything about this job that a smart newcomer would get wrong. Leave out generic advice the model already follows ("be thorough", "write clean code").
-- **Output:** exactly what to return, so the caller can use it.
+- **Done:** the concrete check that proves the work is finished: a test command that passes, a build that succeeds, every claim with a source, a sample checked by hand. "Looks right" is not a check.
+- **Reports:** exactly what to return, and to whom (the caller, the lead, or another named agent).
 - **Honest reporting** (include in every agent, adapted to its job):
   - If it can't read a source, a file is missing, or a command fails, it says so plainly. A failed read is never reported as "nothing found."
   - It states each status as fact or leaves it out. No "possibly still open."
@@ -49,14 +51,17 @@ effort: medium
 
 Goal: report which tests failed in the logs or output you're given, so the caller can go fix them.
 
+Owns: nothing. Read only. Never edit files or re-run tests.
+
 Rules:
-- Read only. Never edit files or re-run tests.
 - If no log was named, use the newest test output you can find and say which file you used.
 
 Known pitfalls:
 - A run that crashed before any test ran (build or import error) has no per-test failures. Report the crash instead of "0 failures."
 
-Output: for each failure, the test file, the test name, and the first error line copied exactly. Then the totals the log reports (passed / failed / skipped).
+Done: every failure in the log is listed, and your count matches the totals the log reports. If the counts differ, say so.
+
+Reports: for each failure, the test file, the test name, and the first error line copied exactly. Then the totals the log reports (passed / failed / skipped).
 
 Honest reporting: if you can't find or read a log, say so. Never report "no failures" for a log you couldn't read. Copy paths and names exactly from the log.
 ```
@@ -65,12 +70,17 @@ Valid `model` values: `haiku`, `sonnet`, `opus`, `fable`, `inherit`, or a full m
 
 ## Teams
 
-When the user asks for several agents working together, decide first whether a team is worth it (see "Teams of agents" in `ModelSelection.md`). If yes:
-- The lead gets the strong model and the `Agent` tool, and its prompt names each worker and when to call it.
-- Workers get the cheapest model that fits their piece, using the "match the model to how the output gets checked" rule in SKILL.md.
-- Include a checker (tests or a parity/verification agent) so worker mistakes get caught. That is what makes cheap workers safe.
-- Tell the user how to run the lead as the main session (`claude --agent <lead-name>`), since subagents can't start subagents.
-- Team-specific agents go in the project's `.claude/agents/`.
+When the user asks for several agents working together, decide first whether a team is worth it (see "Teams of agents" in `ModelSelection.md`). If yes, the team looks like this:
+
+- **Size:** 3–5 members. Add one only when its work can truly run in parallel with the others. Typical roles: an architect or planner, one builder per area (backend, frontend), a test engineer, and a reviewer.
+- **Lead:** strong model (`fable` for migrations, architecture and big features; `opus` otherwise) and the `Agent` tool. It plans, splits the work into self-contained tasks with dependencies marked, hands them out, and steps in when a member drifts. It coordinates and does not write the code itself. Write its prompt from `TeamLeadTemplate.md` (in this skill's folder), filling in the bracketed fields.
+- **File ownership:** each builder's `Owns` lists its own files. No two members edit the same file. Shared files (schemas, config, interfaces) belong to the lead or the architect, and builders ask instead of editing them. When builders run at the same time, give each its own git worktree so they can't collide.
+- **Builders:** the cheapest model that fits their piece, using the "match the model to how the output gets checked" rule in SKILL.md. Each one's `Done` is a test command it must pass.
+- **Test engineer:** owns the test files and settles interfaces directly with the builders.
+- **Reviewer:** read-only, outside the build, with fresh context, and on a **different model than the builders** (for example `opus` reviewing `sonnet` work) so it doesn't share their blind spots. It checks every finished task against the spec and the diff.
+- **Done for the team:** a task counts as complete only when its test passes and the reviewer has checked it. The lead checks every progress claim against real tool output before reporting it.
+- **Running it:** subagents can't start subagents, so the lead must run as the main session (`claude --agent <lead-name>`). If the user's Claude Code supports agent teams (members that message each other directly), mention that the lead can use them instead of plain subagents. Tell the user which applies.
+- **Location:** team-specific agents go in the project's `.claude/agents/`. Reuse role agents that already exist there instead of writing duplicates.
 
 ## Unattended agents
 

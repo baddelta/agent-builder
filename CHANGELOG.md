@@ -2,6 +2,16 @@
 
 All notable changes to this plugin. Versions follow [semver](https://semver.org/).
 
+## 1.3.0 — 2026-11-11
+
+Team and bulk-job rules from two shared images: "The Fully Loaded Claude Code Setup" (@Voxyz_ai) and the "Fable 5.2 Coding Agent Team Prompting Guide" (author not named). Credits in the README.
+
+- **Teams:** 3–5 members, added only for truly parallel work; one owner per file, with shared files owned by the lead or architect; parallel builders in separate git worktrees; a read-only reviewer with fresh context on a different model than the builders; a lead that coordinates instead of coding; tasks complete only when tests pass and the reviewer has checked them.
+- **New `TeamLeadTemplate.md`:** a fill-in prompt for team leads.
+- **Agent instructions** now include `Owns` (the files it may change) and `Done` (the check that proves it's finished), and `Output` is now `Reports`.
+- **Bulk jobs:** for the same task over thousands of items, the skill suggests a Batch API script on Haiku (about half price) tested on ~50 items first, instead of an agent.
+- **Checker:** new hints for editing agents with no `Owns` line and agents with no `Done` check. The Bash warning no longer fires when the agent lists the commands it may run.
+
 ## 1.2.0 — 2026-11-11
 
 Checker upgrades, closing a limit listed in 1.1.0.

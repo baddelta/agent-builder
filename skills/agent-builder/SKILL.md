@@ -28,6 +28,8 @@ The skill also keeps a build log at `~/.claude/agent-builder/agents-log.md`: one
 | Agent's job | Model | Effort |
 |-------------|-------|--------|
 | Classify, route, tag, extract, high volume | `haiku` | `medium` |
+| Same task over thousands of items, nobody waiting | no agent: a Batch API script on `haiku`, tested on ~50 items first | `medium` |
+| Reviewer of another agent's work | a different model from the one it reviews (often `opus` reviewing `sonnet`) | `medium` |
 | Side tasks: find files, read logs, summarize | `haiku` or `sonnet` | `medium` |
 | Repeated investigation, review, drafting | `sonnet` | `medium` |
 | Well-scoped coding (bug fix, spec-driven feature) | `sonnet` | `medium` → `high` |
@@ -42,7 +44,9 @@ Escalate in this order when an agent falls short: (1) give it a way to check its
 
 **One agent:** "Make me an agent that reads test logs and lists the failures" → read-only side task with easy-to-check output → `model: haiku`, `tools: Read, Grep, Glob` → writes `~/.claude/agents/test-log-reader.md` and explains the choice. A finished example ships in this plugin's `examples/` folder.
 
-**A team:** "I want agents to migrate our API from REST to GraphQL" → lead on `fable` (migrations are hard), `sonnet` workers for scoped edits that must pass tests, `haiku` explorer and test checker → writes the files into the project's `.claude/agents/` and explains how to run the lead.
+**A team:** "I want agents to migrate our API from REST to GraphQL" → 3–5 members: lead on `fable` (migrations are hard) written from `TeamLeadTemplate.md`, `sonnet` builders that each own their own files and must pass tests, a read-only reviewer on `opus` → writes the files into the project's `.claude/agents/` and explains how to run the lead.
+
+**Bulk job:** "Make an agent to classify our 40,000 support tickets" → suggests a Batch API script on `haiku` instead of an agent, with a 50-ticket test run first.
 
 **Audit:** "Are my agents on the right models?" → reads each agent's frontmatter, flags strong models doing log-reading or small models making unchecked edits, proposes changes and waits for approval.
 
