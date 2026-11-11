@@ -201,10 +201,11 @@ function check(file) {
     const canEdit = names.some((t) => EDIT_TOOLS.includes(t));
     if (fm.model === "haiku" && canEdit)
       warnings.push("haiku agent can edit files; small models are best kept on read-only, easy-to-check work");
-    const listsCommands = /\b(may run|only run|allowed commands|commands you may|you can run)\b/i.test(body);
+    const listsCommands = /\b(may run|only run|allowed commands|commands you may|you can run|bash is only for|only for:)/i.test(body);
     if (!canEdit && names.includes("Bash") && !listsCommands)
       warnings.push("read-only agent has Bash, which can still change files; list allowed commands in its prompt");
-    if (names.includes("Agent") || names.includes("Task"))
+    // Fine when the file already says to run it as the main session.
+    if ((names.includes("Agent") || names.includes("Task")) && !/claude --agent\b/.test(text))
       warnings.push("has the Agent tool: only works when run as the main session (claude --agent <name>), since subagents can't start subagents");
     if (body.length >= 20) checkInstructions(body, tools, checks);
   }

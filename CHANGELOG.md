@@ -2,6 +2,15 @@
 
 All notable changes to this plugin. Versions follow [semver](https://semver.org/).
 
+## 1.3.1 — 2026-11-11
+
+Fixes from rerunning the migration-team test on 1.3.0.
+
+- Teams: the lead relays messages between members (plain subagents can't message each other); the lead asks before merging each reviewed worktree; one builder file run many times owns "only the files named in your task"; tests must fail before the code exists; an architect role defaults to `opus` at `high`; `sonnet` builders are fine for migrations only with per-task tests and a stronger reviewer.
+- Cascade: the lead re-dispatches a failing task on a stronger model through the Agent tool's `model` setting, instead of needing a separate `-strong` agent file.
+- Placeholders: when repo facts like the test command can't be read, they're marked and listed for the user to confirm.
+- Checker: warnings can now be explained as intended rather than always "fixed"; no Agent-tool warning when the file already says to run it with `claude --agent`; "Bash is only for:" counts as listing allowed commands.
+
 ## 1.3.0 — 2026-11-11
 
 Team and bulk-job rules from two shared images: "The Fully Loaded Claude Code Setup" (@Voxyz_ai) and the "Fable 5.2 Coding Agent Team Prompting Guide" (author not named). Credits in the README.

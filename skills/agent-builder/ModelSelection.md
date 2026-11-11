@@ -22,7 +22,7 @@ All four have a 1M-token context window and 128K max output.
 ## Default and when to move
 
 - **Start at `opus` + `medium`** when unsure.
-- **Move down to `sonnet`** for well-scoped work: bug fixes, features built from a spec, repeated review/drafting/investigation. A clear spec alone isn't enough, though. Migrations and performance work stay hard even with a spec.
+- **Move down to `sonnet`** for well-scoped work: bug fixes, features built from a spec, repeated review/drafting/investigation. A clear spec alone isn't enough, though. Migrations and performance work stay hard even with a spec. Inside a team, `sonnet` builders are still fine for migration tasks when each task has a test it must pass and a stronger reviewer (see the Teams section of `Workflows/CreateAgent.md`).
 - **Move down to `haiku`** for the simplest high-volume work (classify, route, tag, extract) and for side tasks whose output is cheap to check.
 - **Move up to `fable`** for major refactors, migrations, architecture planning, leading many subagents, deep research, scientific or quantitative analysis, long unattended runs, or when `opus` at `high` still falls short.
 - **Interactive/chat agents** a person waits on: `sonnet` at `low` or `medium` (haiku for simple high-volume chat).

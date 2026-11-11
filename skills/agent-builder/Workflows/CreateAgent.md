@@ -8,6 +8,8 @@ You need four things per agent: **what it does**, **what it may touch** (read-on
 
 Location: general-purpose agents go to the user's default (`~/.claude/agents/` unless `~/.claude/agent-builder/PREFERENCES.md` says otherwise). Agents tied to one codebase (they name its files, stack, or test commands) go to `<project>/.claude/agents/`, regardless of the default.
 
+Agents tied to a codebase need facts from it (test command, folder layout). Read them from the repo when you can. When you can't, write a clearly marked placeholder, list every placeholder in your summary for the user to confirm, and don't present the agents as ready until they're filled in.
+
 Before writing, check for an existing agent that already does the job (see Gotchas in SKILL.md), and skim `~/.claude/agent-builder/agents-log.md` if it exists for notes on similar agents built before.
 
 ## What done looks like
@@ -74,12 +76,15 @@ When the user asks for several agents working together, decide first whether a t
 
 - **Size:** 3–5 members. Add one only when its work can truly run in parallel with the others. Typical roles: an architect or planner, one builder per area (backend, frontend), a test engineer, and a reviewer.
 - **Lead:** strong model (`fable` for migrations, architecture and big features; `opus` otherwise) and the `Agent` tool. It plans, splits the work into self-contained tasks with dependencies marked, hands them out, and steps in when a member drifts. It coordinates and does not write the code itself. Write its prompt from `TeamLeadTemplate.md` (in this skill's folder), filling in the bracketed fields.
-- **File ownership:** each builder's `Owns` lists its own files. No two members edit the same file. Shared files (schemas, config, interfaces) belong to the lead or the architect, and builders ask instead of editing them. When builders run at the same time, give each its own git worktree so they can't collide.
-- **Builders:** the cheapest model that fits their piece, using the "match the model to how the output gets checked" rule in SKILL.md. Each one's `Done` is a test command it must pass.
-- **Test engineer:** owns the test files and settles interfaces directly with the builders.
+- **Architect** (when the team has one): designs the shared contract (schema, interfaces) every builder works against. `opus` at `high` by default, since it's judgment with no test behind it; `fable` when the design is very large or ambiguous.
+- **File ownership:** no two members edit the same file. Shared files (schemas, config, interfaces) belong to the lead or the architect, and builders ask instead of editing them. When one builder agent file is run many times in parallel (one run per area or batch), its `Owns` says "only the files named in your task", and the lead names the exact files in each task it hands out. Give parallel builders their own git worktrees so they can't collide.
+- **Integration:** someone must merge the worktrees back. By default the lead asks the user before merging each branch that has passed review, then runs the tests on the merged result. Say this in the lead's prompt.
+- **Builders:** the cheapest model that fits their piece, using the "match the model to how the output gets checked" rule in SKILL.md. `sonnet` is fine even for migration work **when** each task has a test it must pass and a reviewer on a stronger model; without both, use `opus`. Each builder's `Done` is a test command it must pass. For a task that fails twice, the lead re-dispatches it on a stronger model (see the cascade gotcha in SKILL.md).
+- **Test engineer:** owns the test files. Its tests must fail before the code they test exists, which proves they can catch a missing or wrong implementation.
+- **Talking to each other:** plain subagents can't message each other, so the lead relays questions between members (for example interface questions between the test engineer and a builder). Say so in the lead's and members' prompts. Only with agent teams (below) can members talk directly.
 - **Reviewer:** read-only, outside the build, with fresh context, and on a **different model than the builders** (for example `opus` reviewing `sonnet` work) so it doesn't share their blind spots. It checks every finished task against the spec and the diff.
 - **Done for the team:** a task counts as complete only when its test passes and the reviewer has checked it. The lead checks every progress claim against real tool output before reporting it.
-- **Running it:** subagents can't start subagents, so the lead must run as the main session (`claude --agent <lead-name>`). If the user's Claude Code supports agent teams (members that message each other directly), mention that the lead can use them instead of plain subagents. Tell the user which applies.
+- **Running it:** subagents can't start subagents, so the lead must run as the main session (`claude --agent <lead-name>`). Plain subagents finish when they return their report, so there is nothing to shut down. If the user's Claude Code supports agent teams (members that run alongside and message each other directly), mention that the lead can use them instead, in which case members can settle interfaces directly and the lead shuts them down at the end. Tell the user which applies.
 - **Location:** team-specific agents go in the project's `.claude/agents/`. Reuse role agents that already exist there instead of writing duplicates.
 
 ## Unattended agents
@@ -105,5 +110,5 @@ Leave `notes` empty. The user fills it in later ("too weak on long logs", "worke
 
 ## After writing
 
-1. **Run the checker:** `node <this skill's folder>/Tools/validate-agent.mjs <file>...` (or `bun` instead of `node`) on every file you wrote. Fix every `error` and `warning`. Treat each `check:` line as a question: fix it, or tell the user in one line why it's a false alarm.
+1. **Run the checker:** `node <this skill's folder>/Tools/validate-agent.mjs <file>...` (or `bun` instead of `node`) on every file you wrote. Fix every `error`. Treat each `warning` and `check:` line as a question: fix it, or tell the user in one line why it's intended (for example, a team lead always has the `Agent` tool).
 2. **Read each agent back against its tools.** The checker's keyword hints miss things, so reread the body and confirm: every action it's told to take has a tool to do it; every tool it has is needed by something in the body (drop the rest); anything it's told never to do isn't something its tools invite. Fix mismatches before showing the user. Tell the user that new agents are picked up on the next session (or via `/agents`), and that they can tell you how an agent performed so it gets noted in the log.
