@@ -12,6 +12,21 @@ Agents tied to a codebase need facts from it (test command, folder layout). Read
 
 Before writing, check for an existing agent that already does the job (see Gotchas in SKILL.md), and skim `~/.claude/agent-builder/agents-log.md` if it exists for notes on similar agents built before.
 
+Also decide whether saved agent files are the right shape at all (see "Agent files or a one-time workflow" below). If the job is a one-time big job, suggest a workflow before writing any files.
+
+## Agent files or a one-time workflow
+
+Claude Code can also write a **dynamic workflow**: a one-time script that starts subagents, picks the model for each step, and runs them in parallel or in stages (see "Workflows" in `ModelSelection.md`). Choose like this:
+
+| The job | Build |
+|---------|-------|
+| Comes back again and again (every PR, every morning, every test run) | Saved agent file(s), as below |
+| A team the user will rerun on future features | Saved team files (lead + members) |
+| One-time and large: a migration or rename across many files, checking every claim in a doc, deep research, ranking hundreds of items, finding a flaky test | A workflow. Don't save agent files for it |
+| Routine coding, or work that fits in one context window | Neither. A single session or one agent |
+
+When a workflow fits, say so and why, give the user a prompt they can send to start it, and mention that workflows use far more tokens than one session. Starting one is the user's call: they ask for a workflow in their own words (or use the word `ultracode`). You still apply this skill's model rules to each step of it. If they'd rather have agent files anyway, build those.
+
 ## What done looks like
 
 - Each agent is a file `<location>/<agent-name>.md` with lowercase-hyphenated `name` matching the filename.
@@ -72,18 +87,18 @@ Valid `model` values: `haiku`, `sonnet`, `opus`, `fable`, `inherit`, or a full m
 
 ## Teams
 
-When the user asks for several agents working together, decide first whether a team is worth it (see "Teams of agents" in `ModelSelection.md`). If yes, the team looks like this:
+When the user asks for several agents working together, decide first whether a team is worth it (see "Teams of agents" in `ModelSelection.md`). Splitting work across agents with their own context guards against three ways one long session goes wrong: it **stops partway** (35 of 50 items done, reported as finished), it **goes easy on its own work** when checking it, and it **drifts from the goal**, dropping edge cases and "don't do X" rules as the conversation grows. Design the team against those three. If yes, the team looks like this:
 
 - **Size:** 3–5 members. Add one only when its work can truly run in parallel with the others. Typical roles: an architect or planner, one builder per area (backend, frontend), a test engineer, and a reviewer.
 - **Lead:** strong model (`fable` for migrations, architecture and big features; `opus` otherwise) and the `Agent` tool. It plans, splits the work into self-contained tasks with dependencies marked, hands them out, and steps in when a member drifts. It coordinates and does not write the code itself. Write its prompt from `TeamLeadTemplate.md` (in this skill's folder), filling in the bracketed fields.
 - **Architect** (when the team has one): designs the shared contract (schema, interfaces) every builder works against. `opus` at `high` by default, since it's judgment with no test behind it; `fable` when the design is very large or ambiguous.
 - **File ownership:** no two members edit the same file. Shared files (schemas, config, interfaces) belong to the lead or the architect, and builders ask instead of editing them. When one builder agent file is run many times in parallel (one run per area or batch), its `Owns` says "only the files named in your task", and the lead names the exact files in each task it hands out. Give parallel builders their own git worktrees so they can't collide.
 - **Integration:** someone must merge the worktrees back. By default the lead asks the user before merging each branch that has passed review, then runs the tests on the merged result. Say this in the lead's prompt.
-- **Builders:** the cheapest model that fits their piece, using the "match the model to how the output gets checked" rule in SKILL.md. `sonnet` is fine even for migration work **when** each task has a test it must pass and a reviewer on a stronger model; without both, use `opus`. Each builder's `Done` is a test command it must pass. For a task that fails twice, the lead re-dispatches it on a stronger model (see the cascade gotcha in SKILL.md).
+- **Builders:** the cheapest model that fits their piece, using the "match the model to how the output gets checked" rule in SKILL.md. `sonnet` is fine even for migration work **when** each task has a test it must pass and a reviewer on a stronger model; without both, use `opus`. Each builder's `Done` is a test command it must pass. For a task that fails twice, the lead re-dispatches it on a stronger model (see the cascade gotcha in SKILL.md). When tasks vary a lot in difficulty, the lead can first send a cheap scout (`haiku`) to size each one (how many files, how tangled) and pick `sonnet` or `opus` from that (see "Scout first" in `ModelSelection.md`). Tell builders that run in parallel to avoid heavy commands (full builds, the whole test suite) when a narrower one proves their task, so they don't swamp the machine.
 - **Test engineer:** owns the test files. Its tests must fail before the code they test exists, which proves they can catch a missing or wrong implementation.
 - **Talking to each other:** plain subagents can't message each other, so the lead relays questions between members (for example interface questions between the test engineer and a builder). Say so in the lead's and members' prompts. Only with agent teams (below) can members talk directly.
 - **Reviewer:** read-only, outside the build, with fresh context, and on a **different model than the builders** (for example `opus` reviewing `sonnet` work) so it doesn't share their blind spots. It checks every finished task against the spec and the diff.
-- **Done for the team:** a task counts as complete only when its test passes and the reviewer has checked it. The lead checks every progress claim against real tool output before reporting it.
+- **Done for the team:** a task counts as complete only when its test passes and the reviewer has checked it. The lead checks every progress claim against real tool output before reporting it, and its report accounts for every task or item by count ("50 of 50 done", or which ones aren't), so stopping partway can't pass as finished. When the amount of work is unknown up front (finding all the bugs, all the callers), the lead keeps sending new rounds until one turns up nothing new, rather than a fixed number of passes.
 - **Running it:** subagents can't start subagents, so the lead must run as the main session (`claude --agent <lead-name>`). Plain subagents finish when they return their report, so there is nothing to shut down. If the user's Claude Code supports agent teams (members that run alongside and message each other directly), mention that the lead can use them instead, in which case members can settle interfaces directly and the lead shuts them down at the end. Tell the user which applies.
 - **Location:** team-specific agents go in the project's `.claude/agents/`. Reuse role agents that already exist there instead of writing duplicates.
 
@@ -91,6 +106,7 @@ When the user asks for several agents working together, decide first whether a t
 
 When nobody will be watching the agent run (scheduled, `/loop`, CI, headless `claude -p`, or a cloud automation), add these on top of everything above:
 - **Least access.** Read-only tools and read-only tokens wherever the agent only reads. Treat anything it reads (issues, messages, web pages) as possibly containing planted instructions, so it should have no power it doesn't need.
+- **Quarantine untrusted reading.** If the agent reads content strangers can write (public issues, web pages, inbound email, support tickets) **and** acts (edits files, runs commands, posts, labels), split it in two. A **reader** with no write tools and no Bash reads the content and returns only a structured summary (fields like title, category, severity, link). A separate **actor** with the write access acts only on those summaries and never reads the raw content. Planted instructions then reach only an agent that can't do anything with them. The lead or the schedule passes summaries from one to the other.
 - **A spending limit.** Cap each run at roughly 3–5× what a normal run costs, measured from a few real runs, then tighten it. For headless Claude Code use `--max-turns`; for Claude Managed Agents use the deployment's `budget`. Tell the user a run that hits the cap can look like a quiet run.
 - **A sign it ran.** Have it write a short run record (date, what it read, what it did, anything it couldn't read) so silence gets noticed.
 - **Bookmarks, not time windows.** If it processes "new" items, it stores the last item or timestamp it handled and starts from there next run, instead of "the last 24 hours."

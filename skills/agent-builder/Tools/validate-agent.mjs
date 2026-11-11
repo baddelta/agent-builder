@@ -7,7 +7,8 @@
  * No dependencies. Requires Node 18+ or Bun.
  *
  * Checks: frontmatter fields, model and effort values, tool-name spelling,
- * and keyword hints that an agent's instructions don't match its tools.
+ * keyword hints that an agent's instructions don't match its tools, and
+ * agents that read the web while holding write tools (quarantine hint).
  * The keyword hints are heuristics: they can miss mismatches and can flag
  * false ones, so they are reported as "check:" lines, never errors.
  */
@@ -147,6 +148,11 @@ function checkInstructions(body, tools, checks) {
   const AGENT_ASK = /\b(dispatch|delegate|hand (it|them|work) (off|out)|subagents?|worker agents?|your workers)\b|\bcall (the )?`?[a-z0-9-]+`? agent\b/;
   if (!names.has("Agent") && !names.has("Task") && asksFor(sents, AGENT_ASK))
     checks.push("instructions talk about dispatching other agents, but it has no Agent tool");
+
+  // Quarantine: an agent that reads the web and can also change things is the
+  // easiest target for planted instructions. Fine if every source is trusted.
+  if (has(WEB_TOOLS) && (has(EDIT_TOOLS) || names.has("Bash")) && !/\bquarantine|trusted sources? only\b/.test(text))
+    checks.push("reads the web and can also edit files or run commands; if it reads untrusted content, split it into a reader (no write tools) and an actor that sees only the reader's summaries");
 
   const HONEST =
     /\b(can'?t|cannot|couldn'?t|unable to|fails? to)\b[^.]{0,30}\b(find|read|access|reach|open|load|run)\b|\bsay so\b|\bfailed reads?\b|\breport (the|that|it as a) (failure|gap|error)/;

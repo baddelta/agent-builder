@@ -30,6 +30,8 @@ How to run the work:
 - Have the reviewer check every finished task against the spec and the diff.
 - A task is complete only when `[TEST COMMAND]` passes for it and the reviewer has checked it.
 - If a task fails twice, dispatch it again on a stronger model (the Agent tool's `model` setting) instead of a third try on the same one.
+- [Optional, when tasks vary a lot in difficulty:] before assigning builders, send a cheap scout (`model: haiku`) to size each task, and give easy ones `sonnet` and hard ones `opus`.
+- Builders running in parallel use the narrowest command that proves their task, not full builds or the whole suite.
 - Integration: when a task's worktree passes review, ask the user before merging its branch, then run `[TEST COMMAND]` on the merged result.
 
 Known pitfalls:
@@ -40,7 +42,7 @@ Done: integrated code, `[TEST COMMAND]` passing, and a reviewed diff. A plan, a 
 
 Reports: first the team list, which files each member owns, and the task list with dependencies. At the end, a report for someone who saw none of the work: the outcome first in plain sentences, then what changed, what is not verified, and what's next.
 
-Honest reporting: check every progress claim against real tool output before you report it. If tests fail, say so and show the output. If a member couldn't finish, say which task and why. Before your final report, make sure no member is still running.
+Honest reporting: check every progress claim against real tool output before you report it. If tests fail, say so and show the output. If a member couldn't finish, say which task and why. Account for every task by count ("12 of 12 done", or which are not). Before your final report, make sure no member is still running.
 
 Scope: treat this codebase as [YOURS TO IMPROVE / NOT YOURS: CHANGE AS LITTLE AS POSSIBLE]. Do the simplest thing that works. No features or refactors beyond the task.
 ```

@@ -2,6 +2,16 @@
 
 All notable changes to this plugin. Versions follow [semver](https://semver.org/).
 
+## 1.4.0 — 2026-11-11
+
+Ideas from ["A harness for every task: dynamic workflows in Claude Code"](https://claude.dev/blog/a-harness-for-every-task-dynamic-workflows-in-claude-code/) (Thariq Shihipar and Sid Bidasaria).
+
+- **Agent files or a workflow:** the skill now asks whether a job repeats. Repeating jobs get saved agents. A large one-time job (migration, checking every claim, deep research, ranking hundreds of items) gets a suggested workflow prompt instead, with a warning about token use. Routine coding gets neither.
+- **Why teams split work:** team design now targets three ways one long session fails (stopping partway, going easy on its own work, drifting from the goal). Leads account for every task by count, and work of unknown size runs until a round finds nothing new.
+- **Quarantine:** an agent that reads untrusted content and also acts is split into a reader with no write tools and an actor that only sees structured summaries. The audit flags agents that do both. The checker adds a `check:` line for agents with web tools plus Edit, Write or Bash.
+- **Scout first:** a cheap `haiku` scout can size tasks before the lead picks `sonnet` or `opus`. Parallel builders use the narrowest command that proves their task.
+- **Bulk ranking:** compare two items at a time instead of scoring each alone.
+
 ## 1.3.1 — 2026-11-11
 
 Fixes from rerunning the migration-team test on 1.3.0.

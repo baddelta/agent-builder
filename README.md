@@ -17,6 +17,8 @@ Two more claude.dev articles shaped how the agents themselves are written:
 - **["Lessons from Building Claude Code: How We Use Skills"](https://claude.dev/blog/lessons-from-building-claude-code-how-we-use-skills/)** by Thariq Shihipar. This is where we got: give agents a goal and rules rather than numbered scripts, include a known-pitfalls section, and keep a log so the skill learns over time.
 - **["Building Effective Agent Automations"](https://claude.dev/blog/building-effective-agent-automations/)** by Lance Martin and CJ Avilla. This is where we got: the honest-reporting rules (a failed read is never "nothing found", state a status or drop it, copy links from the source) and the rules for unattended agents (least access, a spending cap, a sign it ran, bookmarks instead of time windows).
 
+- **["A harness for every task: dynamic workflows in Claude Code"](https://claude.dev/blog/a-harness-for-every-task-dynamic-workflows-in-claude-code/)** by Thariq Shihipar and Sid Bidasaria. This is where we got: when to suggest a one-time workflow instead of saved agent files, the three ways one long session goes wrong (stopping partway, going easy on its own work, drifting from the goal), quarantining agents that read untrusted content, a cheap scout that sizes tasks before the lead picks a model, and ranking by side-by-side comparison.
+
 Two shared images shaped the team and bulk-job rules:
 
 - **"The Fully Loaded Claude Code Setup"** map by [@Voxyz_ai](https://x.com/Voxyz_ai) (Nov 2026). This is where we got: give every agent a concrete check before it says "done", have a different model review the work, give each parallel agent its own folder, and route bulk jobs to the Batch API after testing on a small sample.
@@ -89,7 +91,7 @@ It reports three levels:
 |-------|---------|---------|
 | `error` | The file is broken; fix it | unknown model `gpt5`, missing description |
 | `warning` | Probably a mistake | tool `Grepp` (did you mean `Grep`?), no `model` set |
-| `check` | A keyword hint that instructions and tools may not match | "says run the tests, but has no Bash" |
+| `check` | A keyword hint that instructions and tools may not match | "says run the tests, but has no Bash"; "reads the web and can also edit files" |
 
 ## How it picks a model
 
@@ -102,6 +104,8 @@ It reports three levels:
 | Migrations, architecture, leading other agents, deep research | Fable | medium → high |
 | Reviewing another agent's work | A different model from the one it reviews | medium |
 | Same task over thousands of items, nobody waiting | No agent: a Batch API script on Haiku, tested on ~50 items first | medium |
+| One-time big job (migration, verify every claim, deep research) | No saved agents: a one-time workflow, with these rules applied to each step | per step |
+| Reads untrusted content (web, public issues, email) and acts on it | Two agents: a reader with no write tools, and an actor that only sees the reader's summaries | per agent |
 | Not sure | Opus | medium |
 
 When an agent falls short, the skill escalates in this order:

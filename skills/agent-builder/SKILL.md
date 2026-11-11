@@ -1,6 +1,6 @@
 ---
 name: agent-builder
-description: "Creates Claude Code subagents (.claude/agents/*.md) and picks the best Claude model and effort level for each one (Haiku, Sonnet, Opus, or Fable) using cost, latency, and capability trade-offs. Also audits existing agents for over- or under-powered model choices and designs lead/worker agent teams. Use when the user wants to create an agent, make a subagent, build an agent team, asks which model an agent should use, wants cheaper or stronger agents, wants their agents audited, or compares haiku vs sonnet vs opus vs fable or effort levels for agents. Not for creating skills or for Claude API model questions unrelated to agents."
+description: "Creates Claude Code subagents (.claude/agents/*.md) and picks the best Claude model and effort level for each one (Haiku, Sonnet, Opus, or Fable) using cost, latency, and capability trade-offs. Also audits existing agents for over- or under-powered model choices and designs lead/worker agent teams. Use when the user wants to create an agent, make a subagent, build an agent team, asks which model an agent should use, wants cheaper or stronger agents, wants their agents audited, compares haiku vs sonnet vs opus vs fable or effort levels for agents, or asks whether a big job needs saved agents or a one-time workflow. Not for creating skills or for Claude API model questions unrelated to agents."
 ---
 
 # Agent Builder
@@ -19,7 +19,7 @@ The skill also keeps a build log at `~/.claude/agent-builder/agents-log.md`: one
 
 | Request | File |
 |---------|------|
-| Create one agent, a team, or an unattended/scheduled agent | `Workflows/CreateAgent.md` |
+| Create one agent, a team, or an unattended/scheduled agent; or decide that a one-time workflow fits better | `Workflows/CreateAgent.md` |
 | Review existing agents' model, effort and instructions | `Workflows/AuditAgents.md` |
 | "That agent was too weak / worked great", feedback on an agent | `Workflows/AuditAgents.md` (Recording results) |
 
@@ -29,6 +29,8 @@ The skill also keeps a build log at `~/.claude/agent-builder/agents-log.md`: one
 |-------------|-------|--------|
 | Classify, route, tag, extract, high volume | `haiku` | `medium` |
 | Same task over thousands of items, nobody waiting | no agent: a Batch API script on `haiku`, tested on ~50 items first | `medium` |
+| One-time big job (migration, verify every claim, deep research, rank hundreds) | no saved agents: a workflow, with this table applied to each step | per step |
+| Reads untrusted content and acts on it | two agents: a reader with no write tools, an actor that sees only its summaries | per agent |
 | Reviewer of another agent's work | a different model from the one it reviews (often `opus` reviewing `sonnet`) | `medium` |
 | Side tasks: find files, read logs, summarize | `haiku` or `sonnet` | `medium` |
 | Repeated investigation, review, drafting | `sonnet` | `medium` |
@@ -64,6 +66,8 @@ Escalate in this order when an agent falls short: (1) give it a way to check its
 - **Check what already exists first.** Look in `~/.claude/agents/`, `<project>/.claude/agents/`, and the agents the session already lists (plugins often ship reviewers and explorers). If one covers the job, suggest changing its `model:` line rather than building a duplicate.
 - **More effort can cost as much as a bigger model.** Past `high`, compare against the next model up at `medium` before raising effort further.
 - **Don't build a team for small work.** If the job is one chain of dependent steps, or fits in one context window, a lead + workers costs more than it saves.
+- **Saved agent files are for jobs that repeat.** For a large one-time job, suggest a workflow instead (see `Workflows/CreateAgent.md`). Claude only starts a workflow when the user asks for one in their own words, so offer it with a ready prompt rather than starting it, and warn that it uses far more tokens than one session.
+- **An agent that reads untrusted content shouldn't also act.** Text in public issues, web pages or email can carry planted instructions. Give the reader no write tools and no Bash, and let a separate actor work only from the reader's structured summary. The checker flags agents that have web tools plus Edit, Write or Bash.
 - **Leaving `model` out means the agent inherits the session's model** (or `CLAUDE_CODE_SUBAGENT_MODEL` if set). That's usually the most expensive choice, so always set `model:` on purpose.
 - **Use the aliases** (`haiku`, `sonnet`, `opus`, `fable`, `inherit`) rather than full model IDs, so agents keep working when new versions come out. Pin a full ID only when the user asks for it.
 - **The `description` field decides when the agent gets used.** Write what it does and when to call it ("Use after a test run").

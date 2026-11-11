@@ -53,6 +53,18 @@ So past `high`, try the next model up at a lower effort before going further.
 - **Custom Explore:** the built-in Explore agent runs on the session's model. A user-defined agent named `Explore` with `model: haiku` makes exploration cheap.
 - `CLAUDE_CODE_SUBAGENT_MODEL` sets the default model for subagents that don't set one.
 - When the routing is simple (one model per step type), let code or the agent file choose the model rather than asking a model to decide at run time.
+- **Scout first** when tasks vary a lot in difficulty and you can't tell which is which up front: a cheap `haiku` agent looks at each task (how many files it touches, how tangled the code is) and the lead sends easy ones to `sonnet` and hard ones to `opus`. This comes from the workflows article below. It pairs with the cascade: the scout guesses up front, the cascade fixes wrong guesses after a failure.
+
+## Workflows: one-time harnesses
+
+**Source:** Thariq Shihipar and Sid Bidasaria, ["A harness for every task: dynamic workflows in Claude Code"](https://claude.dev/blog/a-harness-for-every-task-dynamic-workflows-in-claude-code/), claude.dev blog (Anthropic), June 2026. Summarized in our own words.
+
+A workflow is a script Claude writes for one job. It starts subagents, sets the model and isolation (for example a git worktree) for each, and runs them in parallel or in stages. Saved agent files suit jobs that repeat. A workflow suits a large one-time job, and needs no files left behind.
+
+- **Why split at all:** one long context tends to stop partway, go easy on its own work when checking it, and drift from the goal as it grows. Fresh agents with narrow goals avoid all three.
+- **Useful shapes:** route by a classifier; fan out over items then merge; check each result with a separate agent against a rubric; generate many options then filter; a tournament where a judge compares candidates two at a time; keep going until a round finds nothing new.
+- **Cost:** workflows use far more tokens than one session (the article's examples run to hundreds of thousands or over a million tokens). Use them for complex, high-value jobs, not routine coding. You can cap a run by stating a token budget in the prompt.
+- **Model per step** follows the same rules as agent files: cheap models for reading and sorting, a different and stronger model for checking.
 
 ## Bulk jobs: maybe not an agent at all
 
@@ -60,6 +72,7 @@ When the job is the same small task over many items with nobody waiting (classif
 
 - **Model:** `haiku` at `medium` is the usual starting point (see the table above).
 - **Test small first:** run the prompt on about 50 items, check those results by hand, fix the prompt, and only then run the full set. Mistakes on 50 rows are cheap; mistakes on 50,000 are not.
+- **Ranking, not labeling:** when the job is to order items (worst bugs first, best 10 resumes), ask the model to compare two items at a time rather than score each one alone. Side-by-side judgments are more reliable than absolute scores. Bucket the items, rank each bucket in parallel, then merge.
 - **What the skill does:** offer to write the script and the 50-item check instead of an agent file, and say why.
 
 ## Cost thinking
