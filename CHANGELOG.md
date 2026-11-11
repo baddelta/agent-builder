@@ -2,6 +2,17 @@
 
 All notable changes to this plugin. Versions follow [semver](https://semver.org/).
 
+## 1.4.1 — 2026-11-11
+
+Fixes from running four test requests on 1.4.0 (a one-time migration, a nightly public-issue fixer, a reusable feature team, a one-line typo fix). All four made the right top-level call; these tighten the details.
+
+- **Contradictions removed:** the worked team example is now a reusable team, with new examples for a one-time job (workflow) and a too-small job (just do it). A builder escalated to the reviewer's model gets reviewed on another model. The lead template's shutdown line now matches how subagents end.
+- **Quarantine wiring:** the reader and actor always run under a lead launched as the main session, which also keeps the bookmark and run record. Summaries use fixed fields, fixed-list values, paraphrased and length-capped text, and a `suspicious` flag. The reader gets no `Read` tool.
+- **Unattended leads:** with nobody to ask, the default is no push, no merge, no public posting; things are left for a person and noted in the run record. Permissions are set before a headless run.
+- **Reusable teams:** the lead template has a goal line for "whatever feature you're given", a sizing step that keeps small changes off the full team, `opus` as the default lead for mixed-size teams, `git merge` after approval, a work order (contract, tests, builders), and no failing-test-first rule for pure styling or copy changes. Team size excludes the lead.
+- **Workflow path:** says which team rules carry over, suggests a trial run on a small slice to set the budget, and logs the recommendation. When asked for an agent a job doesn't need, the skill does the job and offers the agent.
+- **Checker:** recognizes `claude -p --agent`; ignores "read-only" said about another agent or when an `Owns:` line names files; new warning for unfilled placeholders (`[TEST COMMAND]`, `<<...>>`, `{{...}}`).
+
 ## 1.4.0 — 2026-11-11
 
 Ideas from ["A harness for every task: dynamic workflows in Claude Code"](https://claude.dev/blog/a-harness-for-every-task-dynamic-workflows-in-claude-code/) (Thariq Shihipar and Sid Bidasaria).

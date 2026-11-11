@@ -8,7 +8,8 @@
  *
  * Checks: frontmatter fields, model and effort values, tool-name spelling,
  * keyword hints that an agent's instructions don't match its tools, and
- * agents that read the web while holding write tools (quarantine hint).
+ * agents that read the web while holding write tools (quarantine hint), and
+ * unfilled placeholders like [TEST COMMAND].
  * The keyword hints are heuristics: they can miss mismatches and can flag
  * false ones, so they are reported as "check:" lines, never errors.
  */
@@ -131,7 +132,12 @@ function checkInstructions(body, tools, checks) {
   // another agent ("`explorer` (cheap, read-only)").
   const READ_ONLY_CLAIM =
     /(^|\n|[.:]\s*)read[- ]only\b|\b(you are|you're|stay|remain|be|work|agent is) read[- ]only\b|\b(never|don'?t|do not)\s+(edit|modify|write|change)\s+(any(thing| files?| code| source)?|files|code)\b/;
-  if (has(EDIT_TOOLS) && READ_ONLY_CLAIM.test(text))
+  // Lines that name another agent in backticks (`fix-reviewer` (opus): read-only)
+  // describe that agent, not this one.
+  const ownLines = text.split("\n").filter((l) => !/`[a-z0-9]+(-[a-z0-9]+)+`/.test(l)).join("\n");
+  // An "Owns:" line naming real files means "don't write code" is scoped, not read-only.
+  const ownsFiles = /(^|\n)\s*[-*]?\s*\**owns\**:\s*(?!nothing|none|no files)\S/.test(text);
+  if (has(EDIT_TOOLS) && !ownsFiles && READ_ONLY_CLAIM.test(ownLines))
     checks.push("instructions say read-only / don't edit, but it has Edit/Write; remove those tools if it truly only reads");
 
   const RUN_ASK =
@@ -211,10 +217,16 @@ function check(file) {
     if (!canEdit && names.includes("Bash") && !listsCommands)
       warnings.push("read-only agent has Bash, which can still change files; list allowed commands in its prompt");
     // Fine when the file already says to run it as the main session.
-    if ((names.includes("Agent") || names.includes("Task")) && !/claude --agent\b/.test(text))
+    if ((names.includes("Agent") || names.includes("Task")) && !/\bclaude\b[^\n`]*--agent\b/.test(text))
       warnings.push("has the Agent tool: only works when run as the main session (claude --agent <name>), since subagents can't start subagents");
     if (body.length >= 20) checkInstructions(body, tools, checks);
   }
+
+  // Unfilled placeholders: [TEST COMMAND], <<FILL ME>>, {{name}}
+  const holes = [...new Set(text.match(/\[[A-Z][A-Z0-9 _/'.-]{2,}\]|<<[^<>\n]+>>|\{\{[^{}\n]+\}\}/g) ?? [])]
+    .map((h) => (h.length > 32 ? `${h.slice(0, 29)}...` : h));
+  if (holes.length)
+    warnings.push(`unfilled placeholder${holes.length > 1 ? "s" : ""} ${holes.slice(0, 5).join(", ")}${holes.length > 5 ? ", ..." : ""}: not ready to use until filled in`);
 
   if (["xhigh", "max"].includes(fm.effort ?? "") && fm.model !== "fable")
     warnings.push(`effort ${fm.effort} on ${fm.model}: compare against the next model up at medium`);

@@ -90,7 +90,7 @@ It reports three levels:
 | Level | Meaning | Example |
 |-------|---------|---------|
 | `error` | The file is broken; fix it | unknown model `gpt5`, missing description |
-| `warning` | Probably a mistake | tool `Grepp` (did you mean `Grep`?), no `model` set |
+| `warning` | Probably a mistake | tool `Grepp` (did you mean `Grep`?), no `model` set, unfilled `[TEST COMMAND]` |
 | `check` | A keyword hint that instructions and tools may not match | "says run the tests, but has no Bash"; "reads the web and can also edit files" |
 
 ## How it picks a model

@@ -11,7 +11,7 @@ Builds subagent definition files and chooses a model + effort for each, so every
 
 Read `~/.claude/agent-builder/PREFERENCES.md` if it exists. It records the user's plan (API or a subscription seat), which models they have, and where they like agents saved.
 
-If it doesn't exist, ask once, before choosing models: are they paying per token through the API, or on a Claude subscription (Pro, Max, Team, Enterprise)? Which models appear in their `/model` menu? Offer to save the answers to that file (template: `PreferencesTemplate.md` in this skill's folder) so you don't ask again.
+If it doesn't exist and you're about to choose models (for agents or a workflow), ask once; this doesn't count toward CreateAgent's three-question limit, and you skip it when you end up building nothing: are they paying per token through the API, or on a Claude subscription (Pro, Max, Team, Enterprise)? Which models appear in their `/model` menu? Offer to save the answers to that file (template: `PreferencesTemplate.md` in this skill's folder) so you don't ask again.
 
 The skill also keeps a build log at `~/.claude/agent-builder/agents-log.md`: one line per agent it creates, plus the user's notes on how each one performed. The preferences file belongs to the user (read it fresh each time, don't rewrite it without asking); the log is yours to append to.
 
@@ -46,7 +46,11 @@ Escalate in this order when an agent falls short: (1) give it a way to check its
 
 **One agent:** "Make me an agent that reads test logs and lists the failures" → read-only side task with easy-to-check output → `model: haiku`, `tools: Read, Grep, Glob` → writes `~/.claude/agents/test-log-reader.md` and explains the choice. A finished example ships in this plugin's `examples/` folder.
 
-**A team:** "I want agents to migrate our API from REST to GraphQL" → 3–5 members: lead on `fable` (migrations are hard) written from `TeamLeadTemplate.md`, `sonnet` builders that each own their own files and must pass tests, a read-only reviewer on `opus` → writes the files into the project's `.claude/agents/` and explains how to run the lead.
+**A team:** "Build us a team we can reuse for every new feature" → 3–5 members plus a lead on `opus` written from `TeamLeadTemplate.md`, `sonnet` builders that each own their own files and must pass tests, a read-only reviewer on a different model → writes the files into the project's `.claude/agents/` and explains how to run the lead, and that small changes shouldn't go through it.
+
+**One-time job:** "Migrate our API from REST to GraphQL, just this once" → no saved files: suggests a workflow with a model for each step and a ready prompt, and warns about token use.
+
+**Too small:** "Set up an agent to fix the typo in our README" → fixes the typo, and offers an agent only if they want this kind of fix handled again.
 
 **Bulk job:** "Make an agent to classify our 40,000 support tickets" → suggests a Batch API script on `haiku` instead of an agent, with a 50-ticket test run first.
 
