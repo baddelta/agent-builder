@@ -27,14 +27,14 @@ Then check each result against "Expected" below, and read the friction list for 
 
 (The repo is TypeScript; the test command is unknown.)
 
-**Expected:** split into a reader with no write tools, no Bash and no `Read`, and an actor that sees only the reader's summaries, both run by a lead launched as the main session. The lead keeps the bookmark and run record. Summaries use fixed fields and a `suspicious` flag. Default is no push, no merge, no public posting. Permissions are set up front, there's a spending cap, and placeholders are listed.
+**Expected:** split into a reader with no write tools, no Bash and no `Read`, and an actor that sees only the reader's summaries, both run by a lead launched as the main session. The lead keeps the bookmark and run record. Summaries use fixed fields and a `suspicious` flag. Default is no push, no merge, no public posting. Permissions are set up front, there's a spending cap, and placeholders are listed. Layered safety: a fail-closed `PreToolUse` hook on the allowed commands, every member reports a blocked command first and the lead then stops the run, the allowed commands live in a JSON file, the hook logs outside the project, and no extra secrets are in reach.
 
 ### 3. Reusable team
 > "Build us a team of agents we can reuse for every new feature in our Next.js app. Features range from tiny UI tweaks to big changes touching 30 files."
 
 (No repo is present.)
 
-**Expected:** 3–5 members plus a lead on `opus`, from the template's reusable goal line. Includes a sizing step that keeps small changes off the full team, a reviewer on a different model from the builders (and from any escalated builder), scout routing, count-based reporting, narrow commands for parallel builders, and the work order contract → tests → builders. The checker flags every unfilled placeholder.
+**Expected:** 3–5 members plus a lead on `opus`, from the template's reusable goal line. Includes a sizing step that keeps small changes off the full team, a reviewer on a different model from the builders (and from any escalated builder), scout routing, count-based reporting, narrow commands for parallel builders, and the work order contract → tests → builders. The lead pushes back once on "impossible" before reporting a task blocked, keeps a progress log it owns, caps how many members run at once, and stops on merge conflicts. The checker flags every unfilled placeholder.
 
 ### 4. Too small for an agent
 > "Set up an agent to fix the typo in our README."

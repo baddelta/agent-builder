@@ -12,12 +12,12 @@ Agents that don't name a model inherit your session's model, which is usually th
 
 The model-selection guidance is based on **["Which Claude model should you build with?"](https://claude.dev/blog/which-claude-model-should-you-build-with/)** by Addy Osmani on the claude.dev blog (Anthropic). [`ModelSelection.md`](skills/agent-builder/ModelSelection.md) summarizes it in our own words, with a snapshot date. Go read the original. It has the benchmarks and reasoning behind every recommendation here.
 
-Two more claude.dev articles shaped how the agents themselves are written:
+More claude.dev articles shaped how the agents themselves are written:
 
 - **["Lessons from Building Claude Code: How We Use Skills"](https://claude.dev/blog/lessons-from-building-claude-code-how-we-use-skills/)** by Thariq Shihipar. This is where we got: give agents a goal and rules rather than numbered scripts, include a known-pitfalls section, and keep a log so the skill learns over time.
 - **["Building Effective Agent Automations"](https://claude.dev/blog/building-effective-agent-automations/)** by Lance Martin and CJ Avilla. This is where we got: the honest-reporting rules (a failed read is never "nothing found", state a status or drop it, copy links from the source) and the rules for unattended agents (least access, a spending cap, a sign it ran, bookmarks instead of time windows).
-
 - **["A harness for every task: dynamic workflows in Claude Code"](https://claude.dev/blog/a-harness-for-every-task-dynamic-workflows-in-claude-code/)** by Thariq Shihipar and Sid Bidasaria. This is where we got: when to suggest a one-time workflow instead of saved agent files, the three ways one long session goes wrong (stopping partway, going easy on its own work, drifting from the goal), quarantining agents that read untrusted content, a cheap scout that sizes tasks before the lead picks a model, and ranking by side-by-side comparison.
+- **["Safely scaling multi-agent teams with Fable 5.2"](https://claude.dev/blog/safely-scaling-multi-agent-teams-with-fable-5-2/)** by Barry Zhang, Tianyi Peng, Elle Najt, Keller Scholl and Lance Martin. This is where we got: pushing back once when an agent calls a task impossible, stacking more than one safety layer for unattended runs, a progress log the lead keeps as evidence, a cap on how many agents run at once, and stopping on merge conflicts.
 
 Two shared images shaped the team and bulk-job rules:
 

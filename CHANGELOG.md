@@ -2,6 +2,16 @@
 
 All notable changes to this plugin. Versions follow [semver](https://semver.org/).
 
+## 1.5.0 — 2026-11-13
+
+Ideas from ["Safely scaling multi-agent teams with Fable 5.2"](https://claude.dev/blog/safely-scaling-multi-agent-teams-with-fable-5-2/) (Barry Zhang, Tianyi Peng, Elle Najt, Keller Scholl, Lance Martin), plus fixes from rerunning the test requests.
+
+- **Push back on "impossible":** leads and workflows ask what was tried and retry with more context, a different approach or a stronger model before reporting a task as blocked. New gotcha: agents give up too early.
+- **Layered safety for unattended runs:** a fail-closed `PreToolUse` hook (it blocks only on exit code 2, so wrap it as `node check-command.mjs || exit 2`), whole-command matching that rejects chaining and outside paths, `git -C` only for read subcommands, allowed commands kept in a JSON file the checker can scan, members report blocked commands first and the lead then stops the run and leaves a `STOPPED` file that keeps later scheduled runs from starting, hook logs outside the project, no extra secrets in reach.
+- **Progress log:** the team lead owns a log file (and gets `Write` for it) with one line per finished task, and builds its final counts from it.
+- **Limits and conflicts:** at most a set number of members run at once; a merge conflict stops the run and is reported, never resolved by the lead.
+- **Test fixes:** a workflow merges reviewed tasks into its own working branch (never the base), a build task is done when its own tests pass and it's reviewed with the full suite after merging, the lead stays on the feature branch while dispatching builders and each builder checks with `git log` that the tests are in its worktree, and a trial run continues from where it stopped.
+
 ## 1.4.2 — 2026-11-11
 
 Fixes from rerunning the four test requests (now saved in `tests/requests.md`) until they came back clean. From this release on, every release runs them first.
