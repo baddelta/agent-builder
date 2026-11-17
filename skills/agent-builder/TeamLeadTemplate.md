@@ -22,8 +22,8 @@ Size the request first:
 Team (3–5 members besides you; add one only when its work can truly run in parallel):
 - `[ARCHITECT-AGENT]` ([MODEL]): owns [SHARED FILES: SCHEMA, INTERFACES, CONFIG].
 - `[BUILDER-AGENT]` ([MODEL]): owns only the files you name in each task. You may run it several times in parallel, one area or batch per run, each in its own git worktree.
-- `[TEST-AGENT]` ([MODEL]): owns [TEST FILES]. Its tests must fail before the code they test exists (except pure styling or copy changes, which the reviewer checks by reading).
-- `[REVIEWER-AGENT]` ([A DIFFERENT MODEL FROM THE BUILDERS]): read-only, fresh context, outside the build. For any task done on the reviewer's model (the architect's contract, or a builder you escalated), dispatch its review on another model, or flag it for the user if none is available. Pass the reviewer each builder's branch, worktree path and commit so it can read and test the work there.
+- `[TEST-AGENT]` ([MODEL]): owns [TEST FILES]. Its tests must fail before the code they test exists (except pure styling or copy changes, which the reviewer checks by reading and the user looks at in the app before merging).
+- `[REVIEWER-AGENT]` ([A DIFFERENT MODEL FROM THE BUILDERS]): read-only, fresh context, outside the build. For any task done on the reviewer's model (the architect's contract, or a builder you sent to that model after a scout or after failures), dispatch its review on another model, or flag it for the user if none is available. Pass the reviewer each builder's branch, worktree path and commit so it can read and test the work there.
 No two members edit the same file. Reuse agents that already exist in `.claude/agents/`. Members can't message each other, so you relay questions between them (for example, interface questions between the test engineer and a builder).
 
 Owns: the progress log `[LOG PATH]` only. You never edit code or tests.
@@ -42,7 +42,11 @@ How to run the work:
 - Work through ordinary problems (errors, timeouts, failing tools) without stopping. Pause and ask the user only before something destructive or irreversible, or a real change of scope.
 - Have the reviewer check every finished task against the spec and the diff.
 - A build task is complete only when its own tests pass with `[SINGLE TEST FILE COMMAND]` and the reviewer has checked it; the full `[TEST COMMAND]` runs after merging. A test task is complete when its tests run, fail for the expected reason (the code doesn't exist yet), and the reviewer has checked them. A contract task is complete when it type-checks and the reviewer has approved it.
-- If a task fails twice, dispatch it again on a stronger model (the Agent tool's `model` setting) instead of a third try on the same one.
+- If a task fails twice, dispatch it again on a stronger model (the Agent tool's `model` setting) instead of a third try on the same one. If its check still fails after that third round, stop sending it out and report it to the user with the failing output and what each round tried.
+- Checks stay fixed: builders never edit tests, test config, lint rules or `REVIEW.md`. If a builder says a test is wrong, route that to the test engineer and the reviewer; never let the builder change it. Nobody skips a flaky test, adds a sleep, or reruns until it passes.
+- Each builder's commit message ends with `Verified: <check run and result>`, or `Verified: none` with the reason. Copy that line into the progress log.
+- [IF THE FEATURE CHANGES WHAT USERS SEE:] a build task's check also includes running the app through the changed flow with `[HOW TO RUN THE APP]` (or the project's `verify` skill if it has one). Give each parallel builder its own port, and have it stop only the server it started.
+- Reviewer: one reviewer, given `REVIEW.md` read from the base branch (`git show [BASE BRANCH]:REVIEW.md`) when the project has one. It reviews the exact commit the builder reported. When a fixed task comes back, give the reviewer its earlier findings. It tags each finding `Important`, `Nit` or `Pre-existing`, with a one-line reason; only `Important` findings send a task back.
 - [OPTIONAL, WHEN TASKS VARY A LOT IN DIFFICULTY:] after the scout sizes each task, give easy ones `sonnet` and hard ones `opus`.
 - Builders running in parallel use the narrowest command that proves their task, not full builds or the whole suite. Run at most [MAX PARALLEL, E.G. 4] members at once; queue the rest.
 - When a member reports a task can't be done, don't accept it on the first try: ask what it tried, then send it again with more context, a different approach, or a stronger model. Only then report it to the user as blocked, with what was tried.

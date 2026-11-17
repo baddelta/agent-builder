@@ -2,6 +2,18 @@
 
 All notable changes to this plugin. Versions follow [semver](https://semver.org/).
 
+## 1.6.0 — 2026-11-17
+
+Ideas from ["How the Claude Code team thinks about verification"](https://claude.dev/blog/how-the-claude-code-team-thinks-about-verification/) (Addy Osmani).
+
+- **Run it, not just test it:** an agent whose changes users see has a `Done` that runs the app through the changed flow (or the project's `verify` skill), with a `[HOW TO RUN THE APP]` placeholder when that's unknown.
+- **Checks stay fixed:** agents that edit code never edit the tests, test config, lint rules or review rules that judge them; no skipping, sleeping through or rerunning flaky tests; after three failed fix rounds (counting the stronger model's) they stop and report the evidence.
+- **One tuned reviewer:** instead of stacking reviewers, the reviewer gets a project `REVIEW.md` of "when the diff touches X, check Y" items, read from the base branch. It reviews the exact commit, gets its earlier findings on later rounds, and tags findings `Important`, `Nit` or `Pre-existing`.
+- **Better tests:** the test engineer writes differential tests for migrations (old system as the oracle, with a list of intended changes), property tests for rules that must always hold, and prefers end-to-end tests of user flows.
+- **Verified commits:** builders end each commit with a `Verified:` line (or `Verified: none` with the reason), copied into the progress log.
+- **Audit:** flags agents that can change their own checks, unit-test-only `Done` for user-facing work, and stacked reviewers. Adds how to test a reviewer on past reverted changes plus clean controls, when a miss becomes a `REVIEW.md` rule, and pruning old rules.
+- **Test fixes:** running a web app names tools Claude Code really has (e2e tests through Bash, `curl`, a browser MCP the user already has), with dev servers in the background on separate ports. A quarantined actor may add a regression test for its own bug but not change existing tests, and its app check stays within its allowed commands. Workflow prompts say how to start the old system and keep progress lines in a file on the working branch. The lead template covers scout-routed builders and the user's look at styling changes. Test runners no longer read the expected answers.
+
 ## 1.5.0 — 2026-11-13
 
 Ideas from ["Safely scaling multi-agent teams with Fable 5.2"](https://claude.dev/blog/safely-scaling-multi-agent-teams-with-fable-5-2/) (Barry Zhang, Tianyi Peng, Elle Najt, Keller Scholl, Lance Martin), plus fixes from rerunning the test requests.
