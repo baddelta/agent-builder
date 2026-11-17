@@ -8,7 +8,8 @@
  *
  * Checks: frontmatter fields, model and effort values, tool-name spelling,
  * keyword hints that an agent's instructions don't match its tools, and
- * agents that read the web while holding write tools (quarantine hint), and
+ * agents that read the web or MCP sources while holding write tools
+ * (quarantine hint), and
  * unfilled placeholders like [TEST COMMAND].
  * The keyword hints are heuristics: they can miss mismatches and can flag
  * false ones, so they are reported as "check:" lines, never errors.
@@ -165,8 +166,14 @@ function checkInstructions(body, tools, checks) {
 
   // Quarantine: an agent that reads the web and can also change things is the
   // easiest target for planted instructions. Fine if every source is trusted.
-  if (has(WEB_TOOLS) && (has(EDIT_TOOLS) || names.has("Bash")) && !/\bquarantine|trusted sources? only\b/.test(text))
+  // MCP tools (GitHub issues, Slack, email...) bring in outside text just like the web.
+  const mcp = [...names].filter((n) => n.startsWith("mcp__"));
+  const canAct = has(EDIT_TOOLS) || names.has("Bash");
+  const trusted = /\bquarantine|trusted sources? only\b/.test(text);
+  if (has(WEB_TOOLS) && canAct && !trusted)
     checks.push("reads the web and can also edit files or run commands; if it reads untrusted content, split it into a reader (no write tools) and an actor that sees only the reader's summaries");
+  else if (mcp.length && canAct && !trusted)
+    checks.push(`uses MCP tools (${mcp.slice(0, 2).join(", ")}${mcp.length > 2 ? ", ..." : ""}) and can also edit files or run commands; if those tools return text strangers can write (public issues, messages, email), split it into a reader (no write tools) and an actor that sees only the reader's summaries`);
 
   const HONEST =
     /\b(can'?t|cannot|couldn'?t|unable to|fails? to)\b[^.]{0,30}\b(find|read|access|reach|open|load|run)\b|\bsay so\b|\bfailed reads?\b|\breport (the|that|it as a) (failure|gap|error)/;

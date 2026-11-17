@@ -2,6 +2,15 @@
 
 All notable changes to this plugin. Versions follow [semver](https://semver.org/).
 
+## 1.6.1 — 2026-11-17
+
+Follow-ups from the 1.6.0 test runs, with the headless and hook claims checked against the Claude Code docs.
+
+- **Checker:** the quarantine hint now also fires for agents with MCP tools (for example `mcp__github__get_issue`) plus Edit, Write or Bash, not only web tools.
+- **Headless runs:** a tool call that isn't allowed is denied and the run carries on; it doesn't stop at the first prompt. Members report denied calls first, like blocked commands.
+- **Hooks:** a hook blocks on exit code 2 or a JSON `deny`; exit 1, crashes, missing scripts and timeouts let the command through. Keep the `|| exit 2` wrap and also set `"onFailure": "block"` where supported. Project hooks do fire for subagents' tool calls; the hand-run still checks worktree paths and that `claude -p --agent` runs as the lead. A timeout also lets a command through, so keep the hook fast and local with a generous `timeout`. Reject write-capable options on read commands (`--output`, `--ext-diff`, `-c`), and allow a second `-m` for the `Verified:` line.
+- **Quarantined fixer's test:** the actor commits the regression test first, then the fix, so the reviewer can see the test fail and then pass in its own worktree.
+
 ## 1.6.0 — 2026-11-17
 
 Ideas from ["How the Claude Code team thinks about verification"](https://claude.dev/blog/how-the-claude-code-team-thinks-about-verification/) (Addy Osmani).
